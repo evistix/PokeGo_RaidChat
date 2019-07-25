@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">PokeGo_RaidChat</string>
+    <string name="hint">Type a message</string>
+</resources>
