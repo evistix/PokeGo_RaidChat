@@ -1,5 +1,7 @@
 package com.example.dkcd1.pokego_raidchat;
 
+import android.content.Context;
+import android.content.Intent;
 import android.renderscript.ScriptGroup;
 import android.support.v7.app.AppCompatActivity;
 
@@ -14,12 +16,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 import android.os.Bundle;
+import android.util.Log;
+import android.view.GestureDetector;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 public class MessageActivity extends AppCompatActivity {
@@ -34,10 +40,14 @@ public class MessageActivity extends AppCompatActivity {
     String msg;
 
     ImageButton btn_send;
-    Button btn_connect;
+    //Button btn_connect;
     EditText text_send;
+    ScrollView scroll_view;
     LinearLayout place_holder;
     List messages = new ArrayList();
+
+    // float values to allow for a swipe action
+    float xSwipe, ySwipe;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +57,8 @@ public class MessageActivity extends AppCompatActivity {
         btn_send = findViewById(R.id.btn_send);
         text_send = findViewById(R.id.text_send);
         place_holder = findViewById(R.id.place_holder);
+        scroll_view = findViewById(R.id.scroll_view);
+        scroll_view.setOnTouchListener(new OnSwipeTouchListener(MessageActivity.this));
         server_connect();
 
         btn_send.setOnClickListener(new View.OnClickListener() {
@@ -139,4 +151,38 @@ public class MessageActivity extends AppCompatActivity {
         }
     }
 
+    // Detects left to right swipes across the scroll view and switches to MapActivity
+    public class OnSwipeTouchListener implements View.OnTouchListener {
+
+        private final GestureDetector gestureDetector;
+
+        public OnSwipeTouchListener(Context context) {
+            gestureDetector = new GestureDetector(context, new GestureListener());
+        }
+
+        public boolean onTouch(View v, MotionEvent event) {
+            return gestureDetector.onTouchEvent(event);
+        }
+
+        private final class GestureListener extends GestureDetector.SimpleOnGestureListener {
+
+            private static final int SWIPE_DISTANCE_THRESHOLD = 100;
+            private static final int SWIPE_VELOCITY_THRESHOLD = 100;
+
+            @Override
+            public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+                xSwipe = e2.getX() - e1.getX();
+                ySwipe = e2.getY() - e1.getY();
+                if (Math.abs(xSwipe) > Math.abs(ySwipe) && Math.abs(xSwipe) > SWIPE_DISTANCE_THRESHOLD && Math.abs(velocityX) > SWIPE_VELOCITY_THRESHOLD) {
+                    if (xSwipe > 0)
+                    {
+                        Intent i = new Intent(MessageActivity.this, MapActivity.class);
+                        startActivity(i);
+                    }
+                    return true;
+                }
+                return false;
+            }
+        }
+    }
 }
